@@ -49,9 +49,11 @@ import manifest.ManifestReader;
 import permissions.*;
 import de.javasoft.plaf.synthetica.SyntheticaBlackMoonLookAndFeel; 
 import javax.swing.ImageIcon;
+import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import manifest.application.Activity;
 import manifest.application.ActivityAlias;
+import manifest.application.ApplicationComponent;
 import manifest.application.Provider;
 import manifest.application.Receiver;
 import manifest.application.Service;
@@ -63,7 +65,7 @@ import manifest.application.Service;
 public class MainFrame extends javax.swing.JFrame {
 
     private Object[] columnNamesPermissions = {"No.", "Permission Name", "Type", "Description", "Score", "Remarks"};
-    private Object[] columnNamesApplications = {"No.", "Application Name", "Type", "Enabled", "Priority", "Action", "Category", "Data", "Meta Data"};
+    private Object[] columnNamesApplications = {"No.", "Application Name", "Type", "Enabled", "Intents", "Action", "Category", "Data", "Meta Data"};
     private PermissionLoader pload = new PermissionLoader();
 
     /**
@@ -85,7 +87,7 @@ public class MainFrame extends javax.swing.JFrame {
         }
         tblPermissions.setModel(new CustomTableModel(null, columnNamesPermissions));
         tblApps.setModel(new CustomTableModel(null, columnNamesApplications));
-        
+        tblApps.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         new DropFile(System.out, this.getContentPane(), /*dragBorder,*/ new DropFile.Listener() {
             public void filesDropped(java.io.File[] files) {
                 ManifestReader reader = new ManifestReader();
@@ -126,29 +128,58 @@ public class MainFrame extends javax.swing.JFrame {
                             dataApp[k][0] = k + 1;
                             dataApp[k][1] = reader.getManifest().getApplication().getApplicationComponents().get(k).getName();
                             
+                            dataApp[k][3] = reader.getManifest().getApplication().getApplicationComponents().get(k).isEnabled();
+                            ApplicationComponent appComp = reader.getManifest().getApplication().getApplicationComponents().get(k);
                             if(reader.getManifest().getApplication().getApplicationComponents().get(k) instanceof Activity){
                                dataApp[k][2] = "Activity";
+                               
+                                dataApp[k][4] = ((Activity)appComp).getIntents().size();// requires reading of intent filter
+                                if(((Activity)appComp).getIntents().size() > 0){
+                                    dataApp[k][5] = ((Activity)appComp).getIntents().get(0).getActions().size();//reader.getManifest().getActivities().get(k).getAction();
+                                    dataApp[k][6] = ((Activity)appComp).getIntents().get(0).getCategories().size();//reader.getManifest().getActivities().get(k).getCategory();
+                                    dataApp[k][7] = ((Activity)appComp).getIntents().get(0).getData().size();//reader.getManifest().getActivities().get(k).getData();
+                                }
+                                dataApp[k][8] = ((Activity)appComp).getMetaDatas().size();//reader.getManifest().getActivities().get(k).getMetaData();
                             }
                             else if(reader.getManifest().getApplication().getApplicationComponents().get(k) instanceof ActivityAlias){
                                dataApp[k][2] = "Activity-Alias";
+                               dataApp[k][4] = ((ActivityAlias)appComp).getIntents().size();// requires reading of intent filter
+                                if(((ActivityAlias)appComp).getIntents().size() > 0){
+                                    dataApp[k][5] = ((ActivityAlias)appComp).getIntents().get(0).getActions().size();//reader.getManifest().getActivities().get(k).getAction();
+                                    dataApp[k][6] = ((ActivityAlias)appComp).getIntents().get(0).getCategories().size();//reader.getManifest().getActivities().get(k).getCategory();
+                                    dataApp[k][7] = ((ActivityAlias)appComp).getIntents().get(0).getData().size();//reader.getManifest().getActivities().get(k).getData();
+                                }
+                                dataApp[k][8] = ((ActivityAlias)appComp).getMetaDatas().size();//reader.getManifest().getActivities().get(k).getMetaData();
                             }
                             else if(reader.getManifest().getApplication().getApplicationComponents().get(k) instanceof Service){
                                dataApp[k][2] = "Service";
+                               dataApp[k][4] = ((Service)appComp).getIntents().size();// requires reading of intent filter
+                               if(((Service)appComp).getIntents().size() > 0){
+                                    dataApp[k][5] = ((Service)appComp).getIntents().get(0).getActions().size();//reader.getManifest().getActivities().get(k).getAction();
+                                    dataApp[k][6] = ((Service)appComp).getIntents().get(0).getCategories().size();//reader.getManifest().getActivities().get(k).getCategory();
+                                    dataApp[k][7] = ((Service)appComp).getIntents().get(0).getData().size();//reader.getManifest().getActivities().get(k).getData();
+                               }
+                               dataApp[k][8] = ((Service)appComp).getMetaDatas().size();//reader.getManifest().getActivities().get(k).getMetaData();
                             }
                             else if(reader.getManifest().getApplication().getApplicationComponents().get(k) instanceof Receiver){
                                dataApp[k][2] = "Receiver";
+                               dataApp[k][4] = ((Receiver)appComp).getIntents().size();// requires reading of intent filter
+                               if(((Receiver)appComp).getIntents().size() > 0){
+                                    dataApp[k][5] = ((Receiver)appComp).getIntents().get(0).getActions().size();//reader.getManifest().getActivities().get(k).getAction();
+                                    dataApp[k][6] = ((Receiver)appComp).getIntents().get(0).getCategories().size();//reader.getManifest().getActivities().get(k).getCategory();
+                                    dataApp[k][7] = ((Receiver)appComp).getIntents().get(0).getData().size();//reader.getManifest().getActivities().get(k).getData();
+                               }
+                               dataApp[k][8] = ((Receiver)appComp).getMetaDatas().size();//reader.getManifest().getActivities().get(k).getMetaData();
                             }
                             else if(reader.getManifest().getApplication().getApplicationComponents().get(k) instanceof Provider){
                                dataApp[k][2] = "Provider";
+                               dataApp[k][4] = "";
+                               dataApp[k][5] = "";
+                               dataApp[k][6] = "";
+                               dataApp[k][7] = "";
+                              
+                               dataApp[k][8] = ((Provider)appComp).getMetaDatas().size();//reader.getManifest().getActivities().get(k).getMetaData();
                             }
-                            
-                            dataApp[k][3] = reader.getManifest().getApplication().getApplicationComponents().get(k).isEnabled();
-                            dataApp[k][4] = 0;// requires reading of intent filter
-                            dataApp[k][5] = "";//reader.getManifest().getActivities().get(k).getAction();
-                            dataApp[k][6] = "";//reader.getManifest().getActivities().get(k).getCategory();
-                            dataApp[k][7] = "";//reader.getManifest().getActivities().get(k).getData();
-                            dataApp[k][8] = "";//reader.getManifest().getActivities().get(k).getMetaData();
-                            
                         }
                     } 
                     catch (java.io.IOException e) {

@@ -1,10 +1,10 @@
 package manifest.application;
 
+import java.util.ArrayList;
 import java.util.StringTokenizer;
+import manifest.application.intent.Intent;
+import manifest.application.metaData.MetaData;
 
-/**
- * refer to http://developer.android.com/guide/topics/manifest/activity-element.html
- */
 public class Activity extends ApplicationComponent {
 
     private String action;
@@ -15,6 +15,34 @@ public class Activity extends ApplicationComponent {
     private boolean allowTaskReparenting = false;
     private boolean alwaysRetainTaskState = false;
     private boolean clearTaskOnLaunch = false;
+
+    /**
+     * @return the intents
+     */
+    public ArrayList<Intent> getIntents() {
+        return intents;
+    }
+
+    /**
+     * @param intents the intents to set
+     */
+    public void setIntents(ArrayList<Intent> intents) {
+        this.intents = intents;
+    }
+
+    /**
+     * @return the metaDatas
+     */
+    public ArrayList<MetaData> getMetaDatas() {
+        return metaDatas;
+    }
+
+    /**
+     * @param metaDatas the metaDatas to set
+     */
+    public void setMetaDatas(ArrayList<MetaData> metaDatas) {
+        this.metaDatas = metaDatas;
+    }
     public enum ConfigChanges {
         mcc, mnc, locale, touchscreen, keyboard, keyboardHidden, navigation, screenLayout, fontScale, uiMode, orientation, screenSize, smallestScreenSize;
     }
@@ -55,6 +83,9 @@ public class Activity extends ApplicationComponent {
         stateVisible, stateAlwaysVisible, adjustUnspecified, adjustResize, adjustPan;
     }
     private WindowSoftInputMode windowSoftInputMode;
+    
+    private ArrayList<Intent> intents = new ArrayList();
+    private ArrayList<MetaData> metaDatas = new ArrayList();
     
     /**
      * @return the launchmode

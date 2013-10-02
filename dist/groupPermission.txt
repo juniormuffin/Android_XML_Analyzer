@@ -1,0 +1,31 @@
+ACCESSIBILITY_FEATURES:Used for permissions that allow requesting certain accessibility features.:0:No known malicious activities
+ACCOUNTS:Permissions for direct access to the accounts managed by the Account Manager.:3:Might be malicious
+AFFECTS_BATTERY:Used for permissions that provide direct access to the hardware on the device that has an effect on battery life. :0:No known malicious activities
+APP_INFO:Group of permissions that are related to the other applications installed on the system.:0:No known malicious activities
+AUDIO_SETTINGS:Used for permissions that provide direct access to speaker settings the device.:0:No known malicious activities
+BLUETOOTH_NETWORK:Used for permissions that provide access to other devices through Bluetooth.:0:No known malicious activities
+BOOKMARKS:Used for permissions that provide access to the user bookmarks and browser history.:5:Might be malicious
+CALENDAR:Used for permissions that provide access to the device calendar to create / view events.:5:Might be malicious
+CAMERA:Used for permissions that are associated with accessing camera or capturing images/video from the device.:10:Might be malicious 
+COST_MONEY:Used for permissions that can be used to make the user spend money without their direct involvement.:10:Might be malicious 
+DEVELOPMENT_TOOLS:Group of permissions that are related to development features.:0:No known malicious activities 
+DEVICE_ALARMS:Used for permissions that provide access to the user voicemail box.:0:No known malicious activities 
+DISPLAY:Group of permissions that allow manipulation of how another application displays UI to the user.:0:No known malicious activities 
+HARDWARE_CONTROLS:Used for permissions that provide direct access to the hardware on the device.:5:Might be malicious 
+LOCATION:Used for permissions that allow access to the user's current location.:5:Might be malicious 
+MESSAGES:Used for permissions that allow an application to send messages on behalf of the user or intercept messages being received by the user.:10:Might be malicious  
+MICROPHONE:Used for permissions that are associated with accessing microphone audio from the device.:10:Might be malicious  
+NETWORK:Used for permissions that provide access to networking services.:10:Might be malicious  
+PERSONAL_INFO:Used for permissions that provide access to information about the device user such as profile information.:8:Might be malicious  
+PHONE_CALLS:Used for permissions that are associated with accessing and modifyign telephony state  placing calls, intercepting outgoing calls, reading and modifying the phone state.:10:Might be malicious  
+SCREENLOCK:Group of permissions that are related to the screenlock.:0:No known malicious activities  
+SOCIAL_INFO:Used for permissions that provide access to the user's social connections, such as contacts, call logs, social stream, etc.:8:Might be malicious   
+STATUS_BAR:Used for permissions that change the status bar:0:No known malicious activities    
+STORAGE:Group of permissions that are related to SD card access.:10:Might be malicious   
+SYNC_SETTINGS:Used for permissions that access the sync settings or sync related information.:0:No known malicious activities     
+SYSTEM_CLOCK:Group of permissions that are related to system clock.:0:No known malicious activities     
+SYSTEM_TOOLS:Group of permissions that are related to system APIs.:8:Might be malicious    
+USER_DICTIONARY:Used for permissions that provide access to the user calendar to create/view events.:3:Might be malicious 
+VOICEMAIL:Used for permissions that provide access to the user voicemail box.:3:Might be malicious 
+WALLPAPER:Group of permissions that allow manipulation of how another application displays UI to the user.:0:No known malicious activities      
+WRITE_USER_DICTIONARY:Used for permissions that provide access to the user calendar to create/view events.:0:No known malicious activities      

@@ -1,15 +1,60 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * <manifest>      
+ * <uses-permission />     
+ * <permission />     
+ * <permission-tree />     
+ * <permission-group />     
+ * <instrumentation />     
+ * <uses-sdk />     
+ * <uses-configuration />       
+ * <uses-feature />      
+ * <supports-screens />       
+ * <compatible-screens />       
+ * <supports-gl-texture />        
+ * 
+ * <application>          
+ * <activity>             
+ * <intent-filter>                 
+ * <action />                 
+ * <category />                 
+ * <data />            
+ * </intent-filter>            
+ * <meta-data />        
+ * </activity>          
+ * <activity-alias>             
+ * <intent-filter> . . . </intent-filter>            
+ * <meta-data />         
+ * </activity-alias>          
+ * <service>             
+ * <intent-filter> . . . </intent-filter>             
+ * <meta-data/>         
+ * </service>          
+ * <receiver>             
+ * <intent-filter> . . . </intent-filter>             
+ * <meta-data />         
+ * </receiver>         
+ * <provider>            
+ * <grant-uri-permission />             
+ * <meta-data />             
+ * <path-permission />         
+ * </provider>          
+ * <uses-library />     
+ * </application>  
+ * </manifest>
  */
 package andoridmanifest_analyzer;
 
-import java.awt.Color;
 import javax.swing.table.DefaultTableModel;
 import manifest.ManifestReader;
 import permissions.*;
 import de.javasoft.plaf.synthetica.SyntheticaBlackMoonLookAndFeel; 
+import javax.swing.ImageIcon;
 import javax.swing.UIManager;
+import manifest.application.Activity;
+import manifest.application.ActivityAlias;
+import manifest.application.Provider;
+import manifest.application.Receiver;
+import manifest.application.Service;
 
 /**
  *
@@ -31,6 +76,7 @@ public class MainFrame extends javax.swing.JFrame {
             e.printStackTrace();
         }
         initComponents();
+        this.setIconImage(new ImageIcon("./res/icon.png").getImage());
         try {
             pload.loadPermission("groupPermission.txt", 1);
             pload.loadPermission("permission.txt", 2);
@@ -52,10 +98,12 @@ public class MainFrame extends javax.swing.JFrame {
                         reader.calculateScore(PermissionLoader.arrPermissions);
                         System.out.println("Score: " + reader.getManifest().getScore());
                         lblPackageName2.setText(reader.getManifest().getPackageName());
-                        lblSDK2.setText(reader.getManifest().getSdkVersion());
-                        lblAppLabel2.setText(reader.getManifest().getAppLabel());
+                        lblSDK2.setText("Min: "+reader.getManifest().getSdkMinVersion()
+                                + " Max: "+reader.getManifest().getSdkMaxVersion()
+                                + " Target: "+reader.getManifest().getSdkTargetVersion());
+                        lblAppLabel2.setText(reader.getManifest().getApplication().getLabel());
                         lblNumPermissions2.setText("" + reader.getManifest().getPermissions().size());
-                        lblNumActivities2.setText("" + reader.getManifest().getActivities().size());
+                        lblNumActivities2.setText("" + reader.getManifest().getApplication().getApplicationComponents().size());
                         if (reader.getManifest().getScore() / 150 < 100) {
                             progressPermissionsScoreMatrix.setValue((int) ((reader.getManifest().getScore() / 150.0) * 100));
                         } else {
@@ -71,19 +119,36 @@ public class MainFrame extends javax.swing.JFrame {
                             data[k][4] = String.format("%02d", getScore(pload, reader.getManifest().getPermissions().get(k)));
                             data[k][5] = getRemarks(pload, reader.getManifest().getPermissions().get(k));
                         }
-                        dataApp = new Object[reader.getManifest().getActivities().size()][columnNamesApplications.length];
-                        for (int k = 0; k < reader.getManifest().getActivities().size(); k++) {
+                        dataApp = new Object[reader.getManifest().getApplication().getApplicationComponents().size()][columnNamesApplications.length];
+                        for (int k = 0; k < reader.getManifest().getApplication().getApplicationComponents().size(); k++) {
                            //{"No.", "Application Name", "Type", "Enabled", "Priority", "Action", "Category", "Data", "Meta Data"};
-    
+                            
                             dataApp[k][0] = k + 1;
-                            dataApp[k][1] = reader.getManifest().getActivities().get(k).getName();
-                            dataApp[k][2] = reader.getManifest().getActivities().get(k).getStrType();
-                            dataApp[k][3] = reader.getManifest().getActivities().get(k).isEnabled();
-                            dataApp[k][4] = reader.getManifest().getActivities().get(k).getPriority();
-                            dataApp[k][5] = reader.getManifest().getActivities().get(k).getAction();
-                            dataApp[k][6] = reader.getManifest().getActivities().get(k).getCategory();
-                            dataApp[k][7] = reader.getManifest().getActivities().get(k).getData();
-                            dataApp[k][8] = reader.getManifest().getActivities().get(k).getMetaData();
+                            dataApp[k][1] = reader.getManifest().getApplication().getApplicationComponents().get(k).getName();
+                            
+                            if(reader.getManifest().getApplication().getApplicationComponents().get(k) instanceof Activity){
+                               dataApp[k][2] = "Activity";
+                            }
+                            else if(reader.getManifest().getApplication().getApplicationComponents().get(k) instanceof ActivityAlias){
+                               dataApp[k][2] = "Activity-Alias";
+                            }
+                            else if(reader.getManifest().getApplication().getApplicationComponents().get(k) instanceof Service){
+                               dataApp[k][2] = "Service";
+                            }
+                            else if(reader.getManifest().getApplication().getApplicationComponents().get(k) instanceof Receiver){
+                               dataApp[k][2] = "Receiver";
+                            }
+                            else if(reader.getManifest().getApplication().getApplicationComponents().get(k) instanceof Provider){
+                               dataApp[k][2] = "Provider";
+                            }
+                            
+                            dataApp[k][3] = reader.getManifest().getApplication().getApplicationComponents().get(k).isEnabled();
+                            dataApp[k][4] = 0;// requires reading of intent filter
+                            dataApp[k][5] = "";//reader.getManifest().getActivities().get(k).getAction();
+                            dataApp[k][6] = "";//reader.getManifest().getActivities().get(k).getCategory();
+                            dataApp[k][7] = "";//reader.getManifest().getActivities().get(k).getData();
+                            dataApp[k][8] = "";//reader.getManifest().getActivities().get(k).getMetaData();
+                            
                         }
                     } 
                     catch (java.io.IOException e) {
@@ -159,7 +224,6 @@ public class MainFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Andorid Manifest Analyzer");
-        setAlwaysOnTop(true);
 
         pnlAPK.setBorder(javax.swing.BorderFactory.createTitledBorder("APK Details"));
 
@@ -284,7 +348,7 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(lblScore))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(12, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         tabDetails.addTab("Permissions", pnlPermissions);
@@ -343,6 +407,7 @@ public class MainFrame extends javax.swing.JFrame {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     /**

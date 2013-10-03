@@ -4,7 +4,6 @@
  */
 package manifest;
 
-import manifest.application.Activity;
 import manifest.application.ActivityAlias;
 import manifest.application.Application;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -15,6 +14,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 import java.io.File;
 import java.util.ArrayList;
+import manifest.application.Activity;
 import manifest.application.Library;
 import manifest.application.Provider;
 import manifest.application.Receiver;

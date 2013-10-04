@@ -13,6 +13,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import manifest.Instrumentation;
 import manifest.application.Activity;
 import manifest.application.ActivityAlias;
 import manifest.application.Application;
@@ -35,7 +36,10 @@ import manifest.application.permission.PathPermission;
 public class MainFrame extends javax.swing.JFrame {
 
     private Object[] columnNamesLibraries = {"No.", "Name", "Required"};
-    private Object[] columnNamesPermissions = {"No.", "Permission Name", "Type", "Description", "Score", "Remarks"};
+    private Object[] columnNamesPermissions = {"No.", "Name", "Description", "Icon", "Label", "Permission Group", "Protection Level"};
+    private Object[] columnNamesPermissionTree = {"No.", "Name", "Icon", "Label"};
+    private Object[] columnNamesPermissionGroup = {"No.", "Name", "Description", "Icon", "Label"};
+    private Object[] columnNamesUsesPermissions = {"No.", "Permission Name", "Type", "Description", "Score", "Remarks"};
     private Object[] columnNamesApplications = {"No.", "Application Name", "Type", "Enabled", "Intents", "Action", "Category", "Data", "Meta Data"};
     private PermissionLoader pload = new PermissionLoader();
     private ManifestReader reader;
@@ -59,10 +63,14 @@ public class MainFrame extends javax.swing.JFrame {
             txtLogs.setText(ex.toString());
             //ex.printStackTrace();
         }
-        tblPermissions.setModel(new CustomTableModel(null, columnNamesPermissions));
+        tblUsesPermissions.setModel(new CustomTableModel(null, columnNamesUsesPermissions));
         tblApps.setModel(new CustomTableModel(null, columnNamesApplications));
         tblLibraries.setModel(new CustomTableModel(null, columnNamesLibraries));
         tblApps.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tblPermissions.setModel(new CustomTableModel(null, columnNamesPermissions));
+        tblPermissionGroup.setModel(new CustomTableModel(null, columnNamesPermissionGroup));
+        tblPermissionTree.setModel(new CustomTableModel(null, columnNamesPermissionTree));
+        
         treeComponents.addTreeSelectionListener(new TreeSelectionListener(){
             public void valueChanged(TreeSelectionEvent e){
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.getPath().getLastPathComponent();
@@ -353,7 +361,12 @@ public class MainFrame extends javax.swing.JFrame {
                     Object[][] data = null;
                     Object[][] dataApp = null;
                     Object[][] dataLib = null;
+                    
+                    Object[][] dataPermission = null;
+                    Object[][] dataPermissionGroup = null;
+                    Object[][] dataPermissionTree = null;
                     try {
+                        loadOthers(reader);
                         System.out.println(files[i].getCanonicalPath());
                         txtLogs.setText(files[i].getCanonicalPath());
                         reader.readManifest(files[i].getCanonicalPath());
@@ -379,7 +392,7 @@ public class MainFrame extends javax.swing.JFrame {
                             dataLib[k][1] = reader.getManifest().getApplication().getLibraries().get(k).getName();
                             dataLib[k][2] = reader.getManifest().getApplication().getLibraries().get(k).isRequired();
                         }
-                        data = new Object[reader.getManifest().getPermissions().size()][columnNamesPermissions.length];
+                        data = new Object[reader.getManifest().getPermissions().size()][columnNamesUsesPermissions.length];
                         for (int k = 0; k < reader.getManifest().getPermissions().size(); k++) {
                             data[k][0] = k + 1;
                             data[k][1] = reader.getManifest().getPermissions().get(k);
@@ -388,6 +401,39 @@ public class MainFrame extends javax.swing.JFrame {
                             data[k][4] = String.format("%02d", getScore(pload, reader.getManifest().getPermissions().get(k)));
                             data[k][5] = getRemarks(pload, reader.getManifest().getPermissions().get(k));
                         }
+                        /*************************/
+                        dataPermission = new Object[reader.getManifest().getPermission().size()][columnNamesPermissions.length];
+                        
+                        for (int k = 0; k < reader.getManifest().getPermission().size(); k++) {
+                            dataPermission[k][0] = k + 1;
+                            dataPermission[k][1] = reader.getManifest().getPermission().get(k).getName();
+                            dataPermission[k][2] = reader.getManifest().getPermission().get(k).getDescription();
+                            dataPermission[k][3] = reader.getManifest().getPermission().get(k).getIcon();
+                            dataPermission[k][4] = reader.getManifest().getPermission().get(k).getLabel();
+                            dataPermission[k][5] = reader.getManifest().getPermission().get(k).getPermissionGroup();
+                            dataPermission[k][6] = reader.getManifest().getPermission().get(k).getProtectionLevel();
+                        }
+                        dataPermissionGroup = new Object[reader.getManifest().getPermissionGroup().size()][columnNamesPermissionGroup.length];
+                        // private Object[] columnNamesPermissionGroup = {"No.", "Name", "Description", "Icon", "Label"};
+                        
+                        for (int k = 0; k < reader.getManifest().getPermissionGroup().size(); k++) {
+                            dataPermissionGroup[k][0] = k + 1;
+                            dataPermissionGroup[k][1] = reader.getManifest().getPermissionGroup().get(k).getName();
+                            dataPermissionGroup[k][2] = reader.getManifest().getPermissionGroup().get(k).getDescription();
+                            dataPermissionGroup[k][3] = reader.getManifest().getPermissionGroup().get(k).getIcon();
+                            dataPermissionGroup[k][4] = reader.getManifest().getPermissionGroup().get(k).getLabel();
+                        }
+                        // private Object[] columnNamesPermissionTree = {"No.", "Name", "Icon", "Label"};
+                        
+                        dataPermissionTree = new Object[reader.getManifest().getPermissionTree().size()][columnNamesPermissionTree.length];
+                        
+                        for (int k = 0; k < reader.getManifest().getPermissionTree().size(); k++) {
+                            dataPermissionTree[k][0] = k + 1;
+                            dataPermissionTree[k][1] = reader.getManifest().getPermissionTree().get(k).getName();
+                            dataPermissionTree[k][2] = reader.getManifest().getPermissionTree().get(k).getIcon();
+                            dataPermissionTree[k][3] = reader.getManifest().getPermissionTree().get(k).getLabel();
+                        }
+                        /*************************/
                         dataApp = new Object[reader.getManifest().getApplication().getApplicationComponents().size()][columnNamesApplications.length];
                         for (int k = 0; k < reader.getManifest().getApplication().getApplicationComponents().size(); k++) {
                            //{"No.", "Application Name", "Type", "Enabled", "Priority", "Action", "Category", "Data", "Meta Data"};
@@ -459,13 +505,25 @@ public class MainFrame extends javax.swing.JFrame {
                         //e.printStackTrace();
                         txtLogs.setText(e.toString());
                     } finally {
-                        tblPermissions.setModel(new CustomTableModel(data, columnNamesPermissions));
+                        tblUsesPermissions.setModel(new CustomTableModel(data, columnNamesUsesPermissions));
                         tblApps.setModel(new CustomTableModel(dataApp, columnNamesApplications));
                         tblLibraries.setModel(new CustomTableModel(dataLib, columnNamesLibraries));
+
+                        tblPermissions.setModel(new CustomTableModel(dataPermission, columnNamesPermissions));
+                        tblPermissionGroup.setModel(new CustomTableModel(dataPermissionGroup, columnNamesPermissionGroup));
+                        tblPermissionTree.setModel(new CustomTableModel(dataPermissionTree, columnNamesPermissionTree));
                     }
-                }  
+                }
             }  
         }); 
+    }
+    
+    private void loadOthers(ManifestReader reader)
+    {
+        String text = "<b>Instrumentation</b>";
+        ArrayList<Instrumentation> instrumentations = reader.getManifest().getInstrumentation();
+        //for(int  i = 0; i < )
+        txtOthers.setText(text);
     }
     
     private void loadData(DefaultMutableTreeNode treeNodeRoot, ArrayList<Intent> intents, ArrayList<MetaData> metaData)
@@ -559,7 +617,16 @@ public class MainFrame extends javax.swing.JFrame {
         lblScore = new javax.swing.JLabel();
         progressPermissionsScoreMatrix = new javax.swing.JProgressBar();
         jScrollPane1 = new javax.swing.JScrollPane();
+        tblUsesPermissions = new javax.swing.JTable();
+        pnlPermission = new javax.swing.JPanel();
+        jScrollPane6 = new javax.swing.JScrollPane();
         tblPermissions = new javax.swing.JTable();
+        pnlPermissionTree = new javax.swing.JPanel();
+        jScrollPane7 = new javax.swing.JScrollPane();
+        tblPermissionTree = new javax.swing.JTable();
+        pnlPermissionGroup = new javax.swing.JPanel();
+        jScrollPane8 = new javax.swing.JScrollPane();
+        tblPermissionGroup = new javax.swing.JTable();
         pnlApplications = new javax.swing.JPanel();
         split1 = new javax.swing.JSplitPane();
         tblApplications = new javax.swing.JScrollPane();
@@ -576,6 +643,9 @@ public class MainFrame extends javax.swing.JFrame {
         jScrollPane5 = new javax.swing.JScrollPane();
         txtLogs = new javax.swing.JTextPane();
         btnClear = new javax.swing.JButton();
+        pnlOthers = new javax.swing.JPanel();
+        jScrollPane9 = new javax.swing.JScrollPane();
+        txtOthers = new javax.swing.JTextPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Andorid Manifest Analyzer");
@@ -621,17 +691,17 @@ public class MainFrame extends javax.swing.JFrame {
                             .addComponent(lblAppLabel))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(pnlAPKLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(lblAppLabel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 675, Short.MAX_VALUE)
-                            .addComponent(lblSDK2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblPackageName2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(lblSDK2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 657, Short.MAX_VALUE)
+                            .addComponent(lblAppLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblPackageName2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlAPKLayout.createSequentialGroup()
                         .addGroup(pnlAPKLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lblNumActivities)
                             .addComponent(lblNumPermissions))
-                        .addGap(25, 25, 25)
-                        .addGroup(pnlAPKLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lblNumPermissions2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblNumActivities2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(pnlAPKLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(lblNumActivities2, javax.swing.GroupLayout.DEFAULT_SIZE, 657, Short.MAX_VALUE)
+                            .addComponent(lblNumPermissions2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         pnlAPKLayout.setVerticalGroup(
@@ -665,8 +735,8 @@ public class MainFrame extends javax.swing.JFrame {
 
         progressPermissionsScoreMatrix.setValue(50);
 
-        tblPermissions.setAutoCreateRowSorter(true);
-        tblPermissions.setModel(new javax.swing.table.DefaultTableModel(
+        tblUsesPermissions.setAutoCreateRowSorter(true);
+        tblUsesPermissions.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -677,7 +747,7 @@ public class MainFrame extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        jScrollPane1.setViewportView(tblPermissions);
+        jScrollPane1.setViewportView(tblUsesPermissions);
 
         javax.swing.GroupLayout pnlPermissionsLayout = new javax.swing.GroupLayout(pnlPermissions);
         pnlPermissions.setLayout(pnlPermissionsLayout);
@@ -702,11 +772,110 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(progressPermissionsScoreMatrix, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblScore))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 452, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 468, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        tabDetails.addTab("Permissions", pnlPermissions);
+        tabDetails.addTab("Uses Permissions", pnlPermissions);
+
+        tblPermissions.setAutoCreateRowSorter(true);
+        tblPermissions.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane6.setViewportView(tblPermissions);
+
+        javax.swing.GroupLayout pnlPermissionLayout = new javax.swing.GroupLayout(pnlPermission);
+        pnlPermission.setLayout(pnlPermissionLayout);
+        pnlPermissionLayout.setHorizontalGroup(
+            pnlPermissionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlPermissionLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 818, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        pnlPermissionLayout.setVerticalGroup(
+            pnlPermissionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlPermissionLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        tabDetails.addTab("Permission", pnlPermission);
+
+        tblPermissionTree.setAutoCreateRowSorter(true);
+        tblPermissionTree.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane7.setViewportView(tblPermissionTree);
+
+        javax.swing.GroupLayout pnlPermissionTreeLayout = new javax.swing.GroupLayout(pnlPermissionTree);
+        pnlPermissionTree.setLayout(pnlPermissionTreeLayout);
+        pnlPermissionTreeLayout.setHorizontalGroup(
+            pnlPermissionTreeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlPermissionTreeLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 818, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        pnlPermissionTreeLayout.setVerticalGroup(
+            pnlPermissionTreeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlPermissionTreeLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        tabDetails.addTab("Permission Tree", pnlPermissionTree);
+
+        tblPermissionGroup.setAutoCreateRowSorter(true);
+        tblPermissionGroup.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane8.setViewportView(tblPermissionGroup);
+
+        javax.swing.GroupLayout pnlPermissionGroupLayout = new javax.swing.GroupLayout(pnlPermissionGroup);
+        pnlPermissionGroup.setLayout(pnlPermissionGroupLayout);
+        pnlPermissionGroupLayout.setHorizontalGroup(
+            pnlPermissionGroupLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlPermissionGroupLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane8, javax.swing.GroupLayout.DEFAULT_SIZE, 818, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        pnlPermissionGroupLayout.setVerticalGroup(
+            pnlPermissionGroupLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlPermissionGroupLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane8, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        tabDetails.addTab("Permission Group", pnlPermissionGroup);
 
         split1.setDividerLocation(150);
         split1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
@@ -748,6 +917,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         split2.setLeftComponent(jScrollPane2);
 
+        txtComponent.setEditable(false);
         txtComponent.setContentType("text/html"); // NOI18N
         jScrollPane3.setViewportView(txtComponent);
 
@@ -768,7 +938,7 @@ public class MainFrame extends javax.swing.JFrame {
             pnlApplicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlApplicationsLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(split1, javax.swing.GroupLayout.DEFAULT_SIZE, 472, Short.MAX_VALUE)
+                .addComponent(split1, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -800,7 +970,7 @@ public class MainFrame extends javax.swing.JFrame {
             pnlLibraryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlLibraryLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 472, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -839,6 +1009,28 @@ public class MainFrame extends javax.swing.JFrame {
         );
 
         tabDetails.addTab("Logs", pnlError);
+
+        txtOthers.setEditable(false);
+        jScrollPane9.setViewportView(txtOthers);
+
+        javax.swing.GroupLayout pnlOthersLayout = new javax.swing.GroupLayout(pnlOthers);
+        pnlOthers.setLayout(pnlOthersLayout);
+        pnlOthersLayout.setHorizontalGroup(
+            pnlOthersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlOthersLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane9, javax.swing.GroupLayout.DEFAULT_SIZE, 818, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        pnlOthersLayout.setVerticalGroup(
+            pnlOthersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlOthersLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane9, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        tabDetails.addTab("Others", pnlOthers);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -896,6 +1088,10 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JScrollPane jScrollPane7;
+    private javax.swing.JScrollPane jScrollPane8;
+    private javax.swing.JScrollPane jScrollPane9;
     private javax.swing.JLabel lblAppLabel;
     private javax.swing.JLabel lblAppLabel2;
     private javax.swing.JLabel lblNumActivities;
@@ -911,6 +1107,10 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel pnlApplications;
     private javax.swing.JPanel pnlError;
     private javax.swing.JPanel pnlLibrary;
+    private javax.swing.JPanel pnlOthers;
+    private javax.swing.JPanel pnlPermission;
+    private javax.swing.JPanel pnlPermissionGroup;
+    private javax.swing.JPanel pnlPermissionTree;
     private javax.swing.JPanel pnlPermissions;
     private javax.swing.JProgressBar progressPermissionsScoreMatrix;
     private javax.swing.JSplitPane split1;
@@ -919,10 +1119,14 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane tblApplications;
     private javax.swing.JTable tblApps;
     private javax.swing.JTable tblLibraries;
+    private javax.swing.JTable tblPermissionGroup;
+    private javax.swing.JTable tblPermissionTree;
     private javax.swing.JTable tblPermissions;
+    private javax.swing.JTable tblUsesPermissions;
     private javax.swing.JTree treeComponents;
     private javax.swing.JTextPane txtComponent;
     private javax.swing.JTextPane txtLogs;
+    private javax.swing.JTextPane txtOthers;
     // End of variables declaration//GEN-END:variables
 }
 

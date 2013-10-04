@@ -1,17 +1,3 @@
-/*
- * <uses-permission />     
- * <permission />     
- * <permission-tree />     
- * <permission-group />     
- * <instrumentation />     
- * <uses-sdk />     
- * <uses-configuration />       
- * <uses-feature />      
- * <supports-screens />       
- * <compatible-screens />       
- * <supports-gl-texture />        
- * 
- */
 package andoridmanifest_analyzer;
 
 import javax.swing.table.DefaultTableModel;
@@ -27,7 +13,6 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeModel;
 import manifest.application.Activity;
 import manifest.application.ActivityAlias;
 import manifest.application.Application;
@@ -62,7 +47,8 @@ public class MainFrame extends javax.swing.JFrame {
         try {
             UIManager.setLookAndFeel(new SyntheticaBlackMoonLookAndFeel());
         } catch (Exception e) {
-            e.printStackTrace();
+            txtLogs.setText(e.toString());
+            //e.printStackTrace();
         }
         initComponents();
         this.setIconImage(new ImageIcon("./res/icon.png").getImage());
@@ -70,10 +56,12 @@ public class MainFrame extends javax.swing.JFrame {
             pload.loadPermission("groupPermission.txt", 1);
             pload.loadPermission("permission.txt", 2);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            txtLogs.setText(ex.toString());
+            //ex.printStackTrace();
         }
         tblPermissions.setModel(new CustomTableModel(null, columnNamesPermissions));
         tblApps.setModel(new CustomTableModel(null, columnNamesApplications));
+        tblLibraries.setModel(new CustomTableModel(null, columnNamesLibraries));
         tblApps.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         treeComponents.addTreeSelectionListener(new TreeSelectionListener(){
             public void valueChanged(TreeSelectionEvent e){
@@ -367,9 +355,11 @@ public class MainFrame extends javax.swing.JFrame {
                     Object[][] dataLib = null;
                     try {
                         System.out.println(files[i].getCanonicalPath());
+                        txtLogs.setText(files[i].getCanonicalPath());
                         reader.readManifest(files[i].getCanonicalPath());
                         reader.calculateScore(PermissionLoader.arrPermissions);
                         System.out.println("Score: " + reader.getManifest().getScore());
+                        txtLogs.setText("Score: " + reader.getManifest().getScore());
                         lblPackageName2.setText(reader.getManifest().getPackageName());
                         lblSDK2.setText("Min: "+reader.getManifest().getSdkMinVersion()
                                 + " Max: "+reader.getManifest().getSdkMaxVersion()
@@ -466,7 +456,8 @@ public class MainFrame extends javax.swing.JFrame {
                         }
                     } 
                     catch (java.io.IOException e) {
-                        e.printStackTrace();
+                        //e.printStackTrace();
+                        txtLogs.setText(e.toString());
                     } finally {
                         tblPermissions.setModel(new CustomTableModel(data, columnNamesPermissions));
                         tblApps.setModel(new CustomTableModel(dataApp, columnNamesApplications));
@@ -581,6 +572,10 @@ public class MainFrame extends javax.swing.JFrame {
         pnlLibrary = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
         tblLibraries = new javax.swing.JTable();
+        pnlError = new javax.swing.JPanel();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        txtLogs = new javax.swing.JTextPane();
+        btnClear = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Andorid Manifest Analyzer");
@@ -707,7 +702,7 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(progressPermissionsScoreMatrix, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblScore))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 447, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 452, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -811,6 +806,40 @@ public class MainFrame extends javax.swing.JFrame {
 
         tabDetails.addTab("Libraries", pnlLibrary);
 
+        jScrollPane5.setViewportView(txtLogs);
+
+        btnClear.setLabel("Clear Logs");
+        btnClear.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnClearActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout pnlErrorLayout = new javax.swing.GroupLayout(pnlError);
+        pnlError.setLayout(pnlErrorLayout);
+        pnlErrorLayout.setHorizontalGroup(
+            pnlErrorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlErrorLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnlErrorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane5)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlErrorLayout.createSequentialGroup()
+                        .addGap(0, 735, Short.MAX_VALUE)
+                        .addComponent(btnClear)))
+                .addContainerGap())
+        );
+        pnlErrorLayout.setVerticalGroup(
+            pnlErrorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlErrorLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 443, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnClear)
+                .addContainerGap())
+        );
+
+        tabDetails.addTab("Logs", pnlError);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -836,6 +865,11 @@ public class MainFrame extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        // TODO add your handling code here:
+        txtLogs.setText("");
+    }//GEN-LAST:event_btnClearActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -845,22 +879,7 @@ public class MainFrame extends javax.swing.JFrame {
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
+        
         //</editor-fold>
 
         /* Create and display the form */
@@ -871,10 +890,12 @@ public class MainFrame extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnClear;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JLabel lblAppLabel;
     private javax.swing.JLabel lblAppLabel2;
     private javax.swing.JLabel lblNumActivities;
@@ -888,6 +909,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel lblScore;
     private javax.swing.JPanel pnlAPK;
     private javax.swing.JPanel pnlApplications;
+    private javax.swing.JPanel pnlError;
     private javax.swing.JPanel pnlLibrary;
     private javax.swing.JPanel pnlPermissions;
     private javax.swing.JProgressBar progressPermissionsScoreMatrix;
@@ -900,6 +922,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTable tblPermissions;
     private javax.swing.JTree treeComponents;
     private javax.swing.JTextPane txtComponent;
+    private javax.swing.JTextPane txtLogs;
     // End of variables declaration//GEN-END:variables
 }
 

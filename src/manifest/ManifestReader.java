@@ -52,35 +52,26 @@ public class ManifestReader {
 
             doc.getDocumentElement().normalize();
 
-            NodeList nList = doc.getElementsByTagName("uses-permission");
-
-            for (int temp = 0; temp < nList.getLength(); temp++) {
-                Node nNode = nList.item(temp);
-                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-                    Element eElement = (Element) nNode;
-                    if (!getManifest().getPermissions().contains((String) eElement.getAttribute("android:name"))) {
-                        getManifest().getPermissions().add(eElement.getAttribute("android:name"));
-                    }
-                }
-            }
-            /*
-             <uses-permission />    
-             <permission />     
-             * <permission-tree />    
-             * <permission-group />    
-             * <instrumentation />    
-             * <uses-configuration />       
-             * <uses-feature />     
-             * <supports-screens />      
-             * <compatible-screens />      
-             * <supports-gl-texture />   
+            /* 
+             * 
+             * <uses-configuration />      
+             * <supports-screens />       
              */
+            readUsePermission(doc, getManifest());
+            readPermission(doc, getManifest());
+            readPermissionTree(doc, getManifest());
+            readPermissionGroup(doc, getManifest());
             readManifest(doc, getManifest());
             readSDK(doc, getManifest());
+            readSupportGLTexture(doc, getManifest());
+            readInstrumentaion(doc, getManifest());
+            readCompatibleScreen(doc, getManifest());
+            readSupportScreen(doc, getManifest());
+            readConfiguration(doc, getManifest());
+            
             readApplication(doc, getManifest());
-
+            readFeature(doc, getManifest());
             readActivity(doc, getManifest());
-
             readActivityAlias(doc, getManifest());
             readService(doc, getManifest());
             readReceiver(doc, getManifest());
@@ -88,6 +79,303 @@ public class ManifestReader {
             readLibrary(doc, getManifest());
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+    
+    private void readConfiguration(Document doc, Manifest manifest) {
+        NodeList nList = doc.getElementsByTagName("uses-configuration");
+
+        for (int temp = 0; temp < nList.getLength(); temp++) {
+            Node nNode = nList.item(temp);
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) nNode;
+                Configuration configuration = new Configuration();
+                
+                if (eElement.getAttribute("android:reqFiveWayNav") != null && eElement.getAttribute("android:reqFiveWayNav").trim().length() > 0) {
+                    if (eElement.getAttribute("android:reqFiveWayNav").trim().equalsIgnoreCase("true")) {
+                        configuration.setReqFiveWayNav(true);
+                    } else if (eElement.getAttribute("android:reqFiveWayNav").trim().equalsIgnoreCase("false")) {
+                        configuration.setReqFiveWayNav(false);
+                    }
+                }
+                
+                if (eElement.getAttribute("android:reqHardKeyboard") != null && eElement.getAttribute("android:reqHardKeyboard").trim().length() > 0) {
+                    if (eElement.getAttribute("android:reqHardKeyboard").trim().equalsIgnoreCase("true")) {
+                        configuration.setReqHardKeyboard(true);
+                    } else if (eElement.getAttribute("android:reqHardKeyboard").trim().equalsIgnoreCase("false")) {
+                        configuration.setReqHardKeyboard(false);
+                    }
+                }
+                
+                if (eElement.getAttribute("android:reqKeyboardType") != null && eElement.getAttribute("android:reqKeyboardType").trim().length() > 0) {
+                    configuration.setReqKeyboardType(Configuration.ReqKeyboardType.valueOf(eElement.getAttribute("android:reqKeyboardType")));
+                }
+                if (eElement.getAttribute("android:reqNavigation") != null && eElement.getAttribute("android:reqNavigation").trim().length() > 0) {
+                    configuration.setReqNavigation(Configuration.ReqNavigation.valueOf(eElement.getAttribute("android:reqNavigation")));
+                }
+                if (eElement.getAttribute("android:reqTouchScreen") != null && eElement.getAttribute("android:reqTouchScreen").trim().length() > 0) {
+                    configuration.setReqTouchScreen(Configuration.ReqTouchScreen.valueOf(eElement.getAttribute("android:reqTouchScreen")));
+                }
+                getManifest().getConfiguration().add(configuration);
+            }
+        }
+    }
+    
+    
+    private void readSupportScreen(Document doc, Manifest manifest) {
+        NodeList nList = doc.getElementsByTagName("supports-screens");
+
+        for (int temp = 0; temp < nList.getLength(); temp++) {
+            Node nNode = nList.item(temp);
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) nNode;
+                SupportScreen supportScreen = new SupportScreen();
+                
+                if (eElement.getAttribute("android:resizeable") != null && eElement.getAttribute("android:resizeable").trim().length() > 0) {
+                    if (eElement.getAttribute("android:resizeable").trim().equalsIgnoreCase("true")) {
+                        supportScreen.setResizable(true);
+                    } else if (eElement.getAttribute("android:resizeable").trim().equalsIgnoreCase("false")) {
+                        supportScreen.setResizable(false);
+                    }
+                }
+                
+                if (eElement.getAttribute("android:smallScreens") != null && eElement.getAttribute("android:smallScreens").trim().length() > 0) {
+                    if (eElement.getAttribute("android:smallScreens").trim().equalsIgnoreCase("true")) {
+                        supportScreen.setSmallScreens(true);
+                    } else if (eElement.getAttribute("android:smallScreens").trim().equalsIgnoreCase("false")) {
+                        supportScreen.setSmallScreens(false);
+                    }
+                }
+                
+                if (eElement.getAttribute("android:normalScreens") != null && eElement.getAttribute("android:normalScreens").trim().length() > 0) {
+                    if (eElement.getAttribute("android:normalScreens").trim().equalsIgnoreCase("true")) {
+                        supportScreen.setNormalScreens(true);
+                    } else if (eElement.getAttribute("android:normalScreens").trim().equalsIgnoreCase("false")) {
+                        supportScreen.setNormalScreens(false);
+                    }
+                }
+                
+                if (eElement.getAttribute("android:largeScreens") != null && eElement.getAttribute("android:largeScreens").trim().length() > 0) {
+                    if (eElement.getAttribute("android:largeScreens").trim().equalsIgnoreCase("true")) {
+                        supportScreen.setLargeScreens(true);
+                    } else if (eElement.getAttribute("android:largeScreens").trim().equalsIgnoreCase("false")) {
+                        supportScreen.setLargeScreens(false);
+                    }
+                }
+                
+                if (eElement.getAttribute("android:xlargeScreens") != null && eElement.getAttribute("android:xlargeScreens").trim().length() > 0) {
+                    if (eElement.getAttribute("android:xlargeScreens").trim().equalsIgnoreCase("true")) {
+                        supportScreen.setxLargeSCreens(true);
+                    } else if (eElement.getAttribute("android:xlargeScreens").trim().equalsIgnoreCase("false")) {
+                        supportScreen.setxLargeSCreens(false);
+                    }
+                }
+                
+                if (eElement.getAttribute("android:anyDensity") != null && eElement.getAttribute("android:anyDensity").trim().length() > 0) {
+                    if (eElement.getAttribute("android:anyDensity").trim().equalsIgnoreCase("true")) {
+                        supportScreen.setAnyDensity(true);
+                    } else if (eElement.getAttribute("android:anyDensity").trim().equalsIgnoreCase("false")) {
+                        supportScreen.setAnyDensity(false);
+                    }
+                }
+                
+                 
+                if (eElement.getAttribute("android:requiresSmallestWidthDp") != null && eElement.getAttribute("android:requiresSmallestWidthDp").trim().length() > 0) {
+                    supportScreen.setRequiresSmallestWidthDp(Integer.parseInt(eElement.getAttribute("android:requiresSmallestWidthDp")));
+                }    
+                if (eElement.getAttribute("android:compatibleWidthLimitDp") != null && eElement.getAttribute("android:compatibleWidthLimitDp").trim().length() > 0) {
+                    supportScreen.setCompatibleWidthLimitDp(Integer.parseInt(eElement.getAttribute("android:compatibleWidthLimitDp")));
+                }          
+                if (eElement.getAttribute("android:largestWidthLimitDp") != null && eElement.getAttribute("android:largestWidthLimitDp").trim().length() > 0) {
+                    supportScreen.setLargestWidthLimitDp(Integer.parseInt(eElement.getAttribute("android:largestWidthLimitDp")));
+                }                     
+                getManifest().getSupportScreen().add(supportScreen);
+            }
+        }
+    }
+    
+    private void readCompatibleScreen(Document doc, Manifest manifest) {
+        NodeList nList = doc.getElementsByTagName("compatible-screens");
+
+        for (int temp = 0; temp < nList.getLength(); temp++) {
+            Node nNode = nList.item(temp);
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) nNode;
+                CompatibleScreen compatibleScreen = new CompatibleScreen();
+                
+                if (eElement.getAttribute("android:screenSize") != null && eElement.getAttribute("android:screenSize").trim().length() > 0) {
+                    compatibleScreen.setScreenSize(CompatibleScreen.ScreenSize.valueOf(eElement.getAttribute("android:screenSize")));
+                }
+                if (eElement.getAttribute("android:screenDensity") != null && eElement.getAttribute("android:screenDensity").trim().length() > 0) {
+                    compatibleScreen.setScreenDensity(CompatibleScreen.ScreenDensity.valueOf(eElement.getAttribute("android:screenDensity")));
+                }
+                getManifest().getCompatibleScreen().add(compatibleScreen);
+            }
+        }
+    }
+    
+    private void readFeature(Document doc, Manifest manifest) {
+        NodeList nList = doc.getElementsByTagName("uses-feature");
+
+        for (int temp = 0; temp < nList.getLength(); temp++) {
+            Node nNode = nList.item(temp);
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) nNode;
+                Feature feature = new Feature();
+                
+                if (eElement.getAttribute("android:name") != null && eElement.getAttribute("android:name").trim().length() > 0) {
+                    feature.setName(eElement.getAttribute("android:name"));
+                }
+                
+                if (eElement.getAttribute("android:required") != null && eElement.getAttribute("android:required").trim().length() > 0) {
+                    if (eElement.getAttribute("android:required").trim().equalsIgnoreCase("true")) {
+                        feature.setRequired(true);
+                    } else if (eElement.getAttribute("android:required").trim().equalsIgnoreCase("false")) {
+                        feature.setRequired(false);
+                    }
+                }
+
+                if (eElement.getAttribute("android:glEsVersion") != null && eElement.getAttribute("android:glEsVersion").trim().length() > 0) {
+                    feature.setGlEsVersion(Integer.parseInt(eElement.getAttribute("android:glEsVersion")));
+                }
+                getManifest().getFeature().add(feature);
+            }
+        }
+    }
+    
+    private void readInstrumentaion(Document doc, Manifest manifest) {
+        NodeList nList = doc.getElementsByTagName("instrumentation");
+
+        for (int temp = 0; temp < nList.getLength(); temp++) {
+            Node nNode = nList.item(temp);
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) nNode;
+                Instrumentation instrumentation = new Instrumentation();
+                
+                if (eElement.getAttribute("android:functionalTest") != null && eElement.getAttribute("android:functionalTest").trim().length() > 0) {
+                    if (eElement.getAttribute("android:functionalTest").trim().equalsIgnoreCase("true")) {
+                        instrumentation.setFunctionalTest(true);
+                    } else if (eElement.getAttribute("android:functionalTest").trim().equalsIgnoreCase("false")) {
+                        instrumentation.setFunctionalTest(false);
+                    }
+                }
+
+                if (eElement.getAttribute("android:handleProfiling") != null && eElement.getAttribute("android:handleProfiling").trim().length() > 0) {
+                    if (eElement.getAttribute("android:handleProfiling").trim().equalsIgnoreCase("true")) {
+                        instrumentation.setHandleProfiling(true);
+                    } else if (eElement.getAttribute("android:handleProfiling").trim().equalsIgnoreCase("false")) {
+                        instrumentation.setHandleProfiling(false);
+                    }
+                }
+                
+                if (eElement.getAttribute("android:icon") != null && eElement.getAttribute("android:icon").trim().length() > 0) {
+                    instrumentation.setIcon(eElement.getAttribute("android:icon"));
+                }
+                if (eElement.getAttribute("android:label") != null && eElement.getAttribute("android:label").trim().length() > 0) {
+                    instrumentation.setLabel(eElement.getAttribute("android:label"));
+                }
+                if (eElement.getAttribute("android:name") != null && eElement.getAttribute("android:name").trim().length() > 0) {
+                    instrumentation.setName(eElement.getAttribute("android:name"));
+                }
+                if (eElement.getAttribute("android:targetPackage") != null && eElement.getAttribute("android:targetPackage").trim().length() > 0) {
+                    instrumentation.setTargetPackage(eElement.getAttribute("android:targetPackage"));
+                }
+                getManifest().getInstrumentation().add(instrumentation);
+            }
+        }
+    }
+    
+    private void readPermissionTree(Document doc, Manifest manifest) {
+        NodeList nList = doc.getElementsByTagName("permission-tree");
+
+        for (int temp = 0; temp < nList.getLength(); temp++) {
+            Node nNode = nList.item(temp);
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) nNode;
+                PermissionTree permissionTree = new PermissionTree();
+                if (eElement.getAttribute("android:icon") != null && eElement.getAttribute("android:icon").trim().length() > 0) {
+                    permissionTree.setIcon(eElement.getAttribute("android:icon"));
+                }
+                if (eElement.getAttribute("android:label") != null && eElement.getAttribute("android:label").trim().length() > 0) {
+                    permissionTree.setLabel(eElement.getAttribute("android:label"));
+                }
+                if (eElement.getAttribute("android:name") != null && eElement.getAttribute("android:name").trim().length() > 0) {
+                    permissionTree.setName(eElement.getAttribute("android:name"));
+                }
+                getManifest().getPermissionTree().add(permissionTree);
+            }
+        }
+    }
+    
+    private void readPermissionGroup(Document doc, Manifest manifest) {
+        NodeList nList = doc.getElementsByTagName("permission-group");
+
+        for (int temp = 0; temp < nList.getLength(); temp++) {
+            Node nNode = nList.item(temp);
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) nNode;
+                PermissionGroup permissionGroup = new PermissionGroup();
+                if (eElement.getAttribute("android:description") != null && eElement.getAttribute("android:description").trim().length() > 0) {
+                    permissionGroup.setDescription(eElement.getAttribute("android:description"));
+                }
+                if (eElement.getAttribute("android:icon") != null && eElement.getAttribute("android:icon").trim().length() > 0) {
+                    permissionGroup.setIcon(eElement.getAttribute("android:icon"));
+                }
+                if (eElement.getAttribute("android:label") != null && eElement.getAttribute("android:label").trim().length() > 0) {
+                    permissionGroup.setLabel(eElement.getAttribute("android:label"));
+                }
+                if (eElement.getAttribute("android:name") != null && eElement.getAttribute("android:name").trim().length() > 0) {
+                    permissionGroup.setName(eElement.getAttribute("android:name"));
+                }
+                getManifest().getPermissionGroup().add(permissionGroup);
+            }
+        }
+    }
+    
+    private void readPermission(Document doc, Manifest manifest) {
+        NodeList nList = doc.getElementsByTagName("permission");
+
+        for (int temp = 0; temp < nList.getLength(); temp++) {
+            Node nNode = nList.item(temp);
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) nNode;
+                Permission permission = new Permission();
+                
+                if (eElement.getAttribute("android:description") != null && eElement.getAttribute("android:description").trim().length() > 0) {
+                    permission.setDescription(eElement.getAttribute("android:description"));
+                }
+                if (eElement.getAttribute("android:icon") != null && eElement.getAttribute("android:icon").trim().length() > 0) {
+                    permission.setIcon(eElement.getAttribute("android:icon"));
+                }
+                if (eElement.getAttribute("android:label") != null && eElement.getAttribute("android:label").trim().length() > 0) {
+                    permission.setLabel(eElement.getAttribute("android:label"));
+                }
+                if (eElement.getAttribute("android:name") != null && eElement.getAttribute("android:name").trim().length() > 0) {
+                    permission.setName(eElement.getAttribute("android:name"));
+                }
+                
+                if (eElement.getAttribute("android:permissionGroup") != null && eElement.getAttribute("android:permissionGroup").trim().length() > 0) {
+                    permission.setPermissionGroup(eElement.getAttribute("android:permissionGroup"));
+                }
+                if (eElement.getAttribute("android:protectionLevel") != null && eElement.getAttribute("android:protectionLevel").trim().length() > 0) {
+                    permission.setProtectionLevel(Permission.ProtectionLevel.valueOf(eElement.getAttribute("android:protectionLevel")));
+                }
+                getManifest().getPermission().add(permission);
+            }
+        }
+    }
+    
+    private void readUsePermission(Document doc, Manifest manifest) {
+        NodeList nList = doc.getElementsByTagName("uses-permission");
+
+        for (int temp = 0; temp < nList.getLength(); temp++) {
+            Node nNode = nList.item(temp);
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) nNode;
+                if (!getManifest().getPermissions().contains((String) eElement.getAttribute("android:name"))) {
+                    getManifest().getPermissions().add(eElement.getAttribute("android:name"));
+                }
+            }
         }
     }
 
@@ -790,7 +1078,22 @@ public class ManifestReader {
             ex.printStackTrace();
         }
     }
-
+    
+    private void readSupportGLTexture(Document doc, Manifest manifest) {
+        try {
+            NodeList nList = doc.getElementsByTagName("supports-gl-texture");
+            for (int temp = 0; temp < nList.getLength(); temp++) {
+                Node nNode = nList.item(temp);
+                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element eElement = (Element) nNode;
+                    manifest.getSupportsGLTexture().add(eElement.getAttribute("android:name"));
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+    
     private void readSDK(Document doc, Manifest manifest) {
         try {
             NodeList nList = doc.getElementsByTagName("uses-sdk");

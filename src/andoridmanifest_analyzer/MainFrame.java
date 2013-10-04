@@ -1,5 +1,4 @@
 /*
- * <manifest>      
  * <uses-permission />     
  * <permission />     
  * <permission-tree />     
@@ -50,6 +49,7 @@ import manifest.application.permission.PathPermission;
  */
 public class MainFrame extends javax.swing.JFrame {
 
+    private Object[] columnNamesLibraries = {"No.", "Name", "Required"};
     private Object[] columnNamesPermissions = {"No.", "Permission Name", "Type", "Description", "Score", "Remarks"};
     private Object[] columnNamesApplications = {"No.", "Application Name", "Type", "Enabled", "Intents", "Action", "Category", "Data", "Meta Data"};
     private PermissionLoader pload = new PermissionLoader();
@@ -79,12 +79,19 @@ public class MainFrame extends javax.swing.JFrame {
             public void valueChanged(TreeSelectionEvent e){
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.getPath().getLastPathComponent();
                 System.out.println("You selected " + node);
-                if(tblApps.getRowCount() > 0 && tblApps.getValueAt(tblApps.getSelectedRow(), 1).toString() != null){
+                if(tblApps.getRowCount() > 0 && tblApps.getSelectedRow() >= 0 && tblApps.getValueAt(tblApps.getSelectedRow(), 1).toString() != null ){
                     String text = "<b>You selected: </b> Index " + tblApps.getValueAt(tblApps.getSelectedRow(), 0).toString() +" - "+ node+"<br><hr>";
                     int selectedIndex = Integer.parseInt(tblApps.getValueAt(tblApps.getSelectedRow(), 0).toString())-1;
                     
                     Application app = reader.getManifest().getApplication();
                     ApplicationComponent appComp = app.getApplicationComponents().get(selectedIndex);
+                    ArrayList<Intent> intents = null;
+                    ArrayList<MetaData> metaData = null;
+                    ArrayList<Action> actions = null;
+                    ArrayList<Category> categories = null;
+                    ArrayList<Data> data = null;
+                    ArrayList<GrantUriPermission> grants = null;                    
+                    ArrayList<PathPermission> paths = null;                        
                     
                     if (node.isRoot()) {
                         text += "<b>AllowTaskReparenting: </b>" + app.isAllowTaskReparenting() + "<br>";
@@ -116,7 +123,30 @@ public class MainFrame extends javax.swing.JFrame {
                         text += "<b>VmSafeMode: </b>" + app.isVmSafeMode()+ "<br>";
                     }else{        
                         DefaultMutableTreeNode node2 = (DefaultMutableTreeNode)node.getParent();
-                        if(node2.isRoot()){
+                        
+                        if (appComp instanceof Activity) {
+                            Activity activity = (Activity) appComp;
+                            intents = activity.getIntents();
+                            metaData = activity.getMetaDatas(); 
+                        }else if (appComp instanceof ActivityAlias) {
+                                ActivityAlias activityAlias = (ActivityAlias) appComp;
+                                intents = activityAlias.getIntents();
+                                metaData = activityAlias.getMetaDatas();
+                        } else if (appComp instanceof Service) {
+                                Service service = (Service) appComp;
+                                metaData = service.getMetaDatas();
+                        }else if (appComp instanceof Receiver) {
+                                Receiver receiver = (Receiver) appComp;
+                                intents = receiver.getIntents();
+                                metaData = receiver.getMetaDatas();
+                        }else if (appComp instanceof Provider) {
+                                Provider provider = (Provider) appComp;
+                                grants = provider.getGrantUriPermissions();
+                                metaData = provider.getMetaDatas();
+                                paths = provider.getPathPermissions();
+                        }
+                        
+                        if (node2.isRoot()) {
                             if (appComp instanceof Activity) {
                                 Activity activity = (Activity) appComp;
                                 text += "<b>Component: </b>Activity<br>";
@@ -155,8 +185,8 @@ public class MainFrame extends javax.swing.JFrame {
                                 text += "<b>Permission: </b>" + activityAlias.getPermission() + "<br>";
                                 text += "<b>TargetActivity: </b>" + activityAlias.getTargetActivity()+ "<br>";
                             } else if (appComp instanceof Service) {
-                                text += "<b>Component: </b>Service<br>";
                                 Service service = (Service) appComp;
+                                text += "<b>Component: </b>Service<br>";
                                 text += "<b>Enabled: </b>" + service.isEnabled() + "<br>";
                                 text += "<b>Exported: </b>" + service.isExported()+ "<br>";
                                 text += "<b>Icon: </b>" + service.getIcon() + "<br>";
@@ -165,10 +195,9 @@ public class MainFrame extends javax.swing.JFrame {
                                 text += "<b>Name: </b>" + service.getName() + "<br>";
                                 text += "<b>Permission: </b>" + service.getPermission() + "<br>";
                                 text += "<b>Process: </b>" + service.getProcess() + "<br>";
-
                             } else if (appComp instanceof Receiver) {
-                                text += "<b>Component: </b>Receiver<br>";
                                 Receiver receiver = (Receiver) appComp;
+                                text += "<b>Component: </b>Receiver<br>";
                                 text += "<b>Enabled: </b>" + receiver.isEnabled() + "<br>";
                                 text += "<b>Exported: </b>" + receiver.isExported()+ "<br>";
                                 text += "<b>Icon: </b>" + receiver.getIcon() + "<br>";
@@ -176,10 +205,9 @@ public class MainFrame extends javax.swing.JFrame {
                                 text += "<b>Name: </b>" + receiver.getName() + "<br>";
                                 text += "<b>Permission: </b>" + receiver.getPermission() + "<br>";
                                 text += "<b>Process: </b>" + receiver.getProcess() + "<br>";
-
                             } else if (appComp instanceof Provider) {
-                                text += "<b>Component: </b>Provider<br>";
                                 Provider provider = (Provider) appComp;
+                                text += "<b>Component: </b>Provider<br>";
                                 text += "<b>Authorities: </b>" + provider.getAuthorities()+ "<br>";
                                 text += "<b>Enabled: </b>" + provider.isEnabled() + "<br>";
                                 text += "<b>Exported: </b>" + provider.isExported()+ "<br>";
@@ -194,6 +222,68 @@ public class MainFrame extends javax.swing.JFrame {
                                 text += "<b>ReadPermission: </b>" + provider.getReadPermission()+ "<br>";
                                 text += "<b>Syncable: </b>" + provider.isSyncable()+ "<br>";
                                 text += "<b>WritePermission: </b>" + provider.getWritePermission() + "<br>";
+                            }
+                        }else{
+                            if(node.toString().equalsIgnoreCase("Intent-Filter")){
+                                text += "<b>Icon: </b>" + intents.get( node2.getIndex(node)).getIcon() + "<br>";
+                                text += "<b>Label: </b>" + intents.get( node2.getIndex(node)).getLabel() + "<br>";
+                                text += "<b>Priority: </b>" + intents.get( node2.getIndex(node)).getPriority() + "<br>";                                
+                            }else if(node.toString().equalsIgnoreCase("grant-uri-permission")){
+                                text += "<b>Path: </b>" + grants.get( node2.getIndex(node)).getPath()+ "<br>";
+                                text += "<b>Path Pattern: </b>" + grants.get( node2.getIndex(node)).getPathPattern() + "<br>";
+                                text += "<b>Path Prefix: </b>" + grants.get( node2.getIndex(node)).getPathPrefix()+ "<br>";                                
+                            }else if(node.toString().equalsIgnoreCase("meta-data")){
+                                int intentCount = 0;
+                                for(int k = 0; k < node.getSiblingCount(); k++){
+                                    if(node2.getChildAt(k).toString().equalsIgnoreCase("Intent-Filter") ||node2.getChildAt(k).toString().equalsIgnoreCase("grant-uri-permission") ){
+                                        intentCount++;
+                                    }
+                                }
+                                text += "<b>Name: </b>" + metaData.get( node2.getIndex(node)-intentCount).getName() + "<br>";
+                                text += "<b>Resource: </b>" + metaData.get( node2.getIndex(node)-intentCount).getResource() + "<br>";
+                                text += "<b>Value: </b>" + metaData.get( node2.getIndex(node)-intentCount).getValue()+ "<br>";                                
+                            }else if(node.toString().equalsIgnoreCase("path-permission")){
+                                int pathCount = 0;
+                                for(int k = 0; k < node.getSiblingCount(); k++){
+                                    if(node2.getChildAt(k).toString().equalsIgnoreCase("meta-data") ||node2.getChildAt(k).toString().equalsIgnoreCase("grant-uri-permission") ){
+                                        pathCount++;
+                                    }
+                                }
+                                text += "<b>Path: </b>" + paths.get( node2.getIndex(node)-pathCount).getPath()+ "<br>";
+                                text += "<b>Path Pattern: </b>" + paths.get( node2.getIndex(node)-pathCount).getPathPattern() + "<br>";
+                                text += "<b>Path Prefix: </b>" + paths.get( node2.getIndex(node)-pathCount).getPathPrefix()+ "<br>";      
+                                text += "<b>Permission: </b>" + paths.get( node2.getIndex(node)-pathCount).getPermission()+ "<br>";
+                                text += "<b>Read Permission: </b>" + paths.get( node2.getIndex(node)-pathCount).getReadPermission()+ "<br>";
+                                text += "<b>Write Permission: </b>" + paths.get( node2.getIndex(node)-pathCount).getWritePermission()+ "<br>";                                      
+                            }else if(node2.toString().equalsIgnoreCase("Intent-filter")){
+                                if(node.toString().equalsIgnoreCase("action")){
+                                    actions = intents.get(node2.getParent().getIndex(node2)).getActions();
+                                    text += "<b>Name: </b>" + actions.get(node2.getIndex(node)).getName()  + "<br>";                          
+                                }else if(node.toString().equalsIgnoreCase("category")){                                    
+                                    int actionCount = 0;
+                                    for(int k = 0; k < node.getSiblingCount(); k++){
+                                        if(node2.getChildAt(k).toString().equalsIgnoreCase("action")){
+                                            actionCount++;
+                                        }
+                                    }
+                                    categories = intents.get(node2.getParent().getIndex(node2)).getCategories();
+                                    text += "<b>Name: </b>" + categories.get(node2.getIndex(node)-actionCount).getName()+ "<br>";                                        
+                                }else if(node.toString().equalsIgnoreCase("data")){
+                                    int acCount = 0;
+                                    for(int k = 0; k < node.getSiblingCount(); k++){
+                                        if(node2.getChildAt(k).toString().equalsIgnoreCase("action") || node2.getChildAt(k).toString().equalsIgnoreCase("category")){
+                                            acCount++;
+                                        }
+                                    }
+                                    data = intents.get(node2.getParent().getIndex(node2)).getData();
+                                    text += "<b>Host: </b>" + data.get(node2.getIndex(node)-acCount).getHost()+ "<br>";        
+                                    text += "<b>Mime Type: </b>" + data.get(node2.getIndex(node)-acCount).getMimeType()+ "<br>";     
+                                    text += "<b>Path: </b>" + data.get(node2.getIndex(node)-acCount).getPath()+ "<br>";     
+                                    text += "<b>Path Pattern: </b>" + data.get(node2.getIndex(node)-acCount).getPathPattern()+ "<br>";     
+                                    text += "<b>Path Prefix: </b>" + data.get(node2.getIndex(node)-acCount).getPathPrefix()+ "<br>";     
+                                    text += "<b>Port: </b>" + data.get(node2.getIndex(node)-acCount).getPort()+ "<br>";               
+                                    text += "<b>Scheme: </b>" + data.get(node2.getIndex(node)-acCount).getScheme()+ "<br>";                                     
+                                }                              
                             }
                         }
                     }
@@ -241,7 +331,10 @@ public class MainFrame extends javax.swing.JFrame {
                 }else{
                     int selectedIndex = Integer.parseInt(tblApps.getValueAt(tblApps.getSelectedRow(), 0).toString()) - 1;
                     ApplicationComponent appComp = reader.getManifest().getApplication().getApplicationComponents().get(selectedIndex);
-                    DefaultMutableTreeNode treeNodeRoot = new DefaultMutableTreeNode(tblApps.getValueAt(tblApps.getSelectedRow(), 1).toString());
+                    
+                    DefaultMutableTreeNode treeNodeRoot = new DefaultMutableTreeNode("Application");
+                    DefaultMutableTreeNode treeNodeAppComponent = new DefaultMutableTreeNode(tblApps.getValueAt(tblApps.getSelectedRow(), 1).toString());
+                    
                     Provider provider = (Provider) appComp;
                     
                     ArrayList<GrantUriPermission> grantUris = provider.getGrantUriPermissions();
@@ -249,16 +342,17 @@ public class MainFrame extends javax.swing.JFrame {
                     ArrayList<PathPermission> pathPermissions = provider.getPathPermissions();
                     for (int i = 0; i < grantUris.size(); i++) {
                         DefaultMutableTreeNode treeUri = new javax.swing.tree.DefaultMutableTreeNode("Grant-Uri-Permission");
-                        treeNodeRoot.add(treeUri);
+                        treeNodeAppComponent.add(treeUri);
                     }
                     for (int i = 0; i < metaDatas.size(); i++) {
                         DefaultMutableTreeNode treeMeta = new javax.swing.tree.DefaultMutableTreeNode("Meta-data");
-                        treeNodeRoot.add(treeMeta);
+                        treeNodeAppComponent.add(treeMeta);
                     }
                     for (int i = 0; i < pathPermissions.size(); i++) {
                         DefaultMutableTreeNode treePath = new javax.swing.tree.DefaultMutableTreeNode("Path-Permission");
-                        treeNodeRoot.add(treePath);
+                        treeNodeAppComponent.add(treePath);
                     }
+                    treeNodeRoot.add(treeNodeAppComponent);
                     treeComponents.setModel(new javax.swing.tree.DefaultTreeModel(treeNodeRoot));
                 }
             }
@@ -270,6 +364,7 @@ public class MainFrame extends javax.swing.JFrame {
                 for (int i = 0; i < files.length; i++) {
                     Object[][] data = null;
                     Object[][] dataApp = null;
+                    Object[][] dataLib = null;
                     try {
                         System.out.println(files[i].getCanonicalPath());
                         reader.readManifest(files[i].getCanonicalPath());
@@ -288,6 +383,12 @@ public class MainFrame extends javax.swing.JFrame {
                             progressPermissionsScoreMatrix.setValue(100);
                         }
                         
+                        dataLib = new Object[reader.getManifest().getPermissions().size()][columnNamesLibraries.length];
+                        for (int k = 0; k < reader.getManifest().getApplication().getLibraries().size(); k++) {
+                            dataLib[k][0] = k + 1;
+                            dataLib[k][1] = reader.getManifest().getApplication().getLibraries().get(k).getName();
+                            dataLib[k][2] = reader.getManifest().getApplication().getLibraries().get(k).isRequired();
+                        }
                         data = new Object[reader.getManifest().getPermissions().size()][columnNamesPermissions.length];
                         for (int k = 0; k < reader.getManifest().getPermissions().size(); k++) {
                             data[k][0] = k + 1;
@@ -369,6 +470,7 @@ public class MainFrame extends javax.swing.JFrame {
                     } finally {
                         tblPermissions.setModel(new CustomTableModel(data, columnNamesPermissions));
                         tblApps.setModel(new CustomTableModel(dataApp, columnNamesApplications));
+                        tblLibraries.setModel(new CustomTableModel(dataLib, columnNamesLibraries));
                     }
                 }  
             }  
@@ -476,6 +578,9 @@ public class MainFrame extends javax.swing.JFrame {
         treeComponents = new javax.swing.JTree();
         jScrollPane3 = new javax.swing.JScrollPane();
         txtComponent = new javax.swing.JTextPane();
+        pnlLibrary = new javax.swing.JPanel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        tblLibraries = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Andorid Manifest Analyzer");
@@ -668,11 +773,43 @@ public class MainFrame extends javax.swing.JFrame {
             pnlApplicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlApplicationsLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(split1, javax.swing.GroupLayout.DEFAULT_SIZE, 467, Short.MAX_VALUE)
+                .addComponent(split1, javax.swing.GroupLayout.DEFAULT_SIZE, 472, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         tabDetails.addTab("Applications", pnlApplications);
+
+        tblLibraries.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane4.setViewportView(tblLibraries);
+
+        javax.swing.GroupLayout pnlLibraryLayout = new javax.swing.GroupLayout(pnlLibrary);
+        pnlLibrary.setLayout(pnlLibraryLayout);
+        pnlLibraryLayout.setHorizontalGroup(
+            pnlLibraryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlLibraryLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 818, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        pnlLibraryLayout.setVerticalGroup(
+            pnlLibraryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlLibraryLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 472, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        tabDetails.addTab("Libraries", pnlLibrary);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -737,6 +874,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JLabel lblAppLabel;
     private javax.swing.JLabel lblAppLabel2;
     private javax.swing.JLabel lblNumActivities;
@@ -750,6 +888,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel lblScore;
     private javax.swing.JPanel pnlAPK;
     private javax.swing.JPanel pnlApplications;
+    private javax.swing.JPanel pnlLibrary;
     private javax.swing.JPanel pnlPermissions;
     private javax.swing.JProgressBar progressPermissionsScoreMatrix;
     private javax.swing.JSplitPane split1;
@@ -757,6 +896,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTabbedPane tabDetails;
     private javax.swing.JScrollPane tblApplications;
     private javax.swing.JTable tblApps;
+    private javax.swing.JTable tblLibraries;
     private javax.swing.JTable tblPermissions;
     private javax.swing.JTree treeComponents;
     private javax.swing.JTextPane txtComponent;

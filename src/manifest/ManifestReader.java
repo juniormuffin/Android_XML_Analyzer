@@ -121,7 +121,6 @@ public class ManifestReader {
 
     private void readProvider(Document doc, Manifest manifest) {
         NodeList nList = doc.getElementsByTagName("provider");
-
         for (int temp = 0; temp < nList.getLength(); temp++) {
             Node nNode = nList.item(temp);
             if (nNode.getNodeType() == Node.ELEMENT_NODE) {
@@ -170,7 +169,7 @@ public class ManifestReader {
                             provider.getGrantUriPermissions().add(grantUriPermission);
                         }
 
-                        if (nNodeChild.getNodeName().trim().equalsIgnoreCase("grant-uri-permission")) {
+                        if (nNodeChild.getNodeName().trim().equalsIgnoreCase("path-permission")) {
                             PathPermission pathPermission = new PathPermission();
                             Element eElement = (Element) nNodeChild;
 
@@ -186,7 +185,7 @@ public class ManifestReader {
                                     && (eElement.getAttribute("android:pathPattern")).length() > 0) {
                                 pathPermission.setPathPattern(eElement.getAttribute("android:pathPattern"));
                             }
-                            
+
                             if (eElement.getAttribute("android:permission") != null
                                     && (eElement.getAttribute("android:permission")).length() > 0) {
                                 pathPermission.setPermission(eElement.getAttribute("android:permission"));
@@ -202,8 +201,8 @@ public class ManifestReader {
                             provider.getPathPermissions().add(pathPermission);
                         }
                     }
-                    manifest.getApplication().getApplicationComponents().add(provider);
                 }
+                manifest.getApplication().getApplicationComponents().add(provider);
             }
         }
     }
@@ -380,27 +379,26 @@ public class ManifestReader {
                                 intent.setLabel(eElement.getAttribute("android:label"));
                             }
                             receiver.getIntents().add(intent);
-                        }
-                    } else if (nNodeChild.getNodeName().trim().equalsIgnoreCase("meta-data")) {
-                        MetaData metaData = new MetaData();
-                        Element eElement = (Element) nNodeChild;
+                        } else if (nNodeChild.getNodeName().trim().equalsIgnoreCase("meta-data")) {
+                            MetaData metaData = new MetaData();
+                            Element eElement = (Element) nNodeChild;
 
-                        if (eElement.getAttribute("android:name") != null
-                                && (eElement.getAttribute("android:name")).length() > 0) {
-                            metaData.setName(eElement.getAttribute("android:name"));
+                            if (eElement.getAttribute("android:name") != null
+                                    && (eElement.getAttribute("android:name")).length() > 0) {
+                                metaData.setName(eElement.getAttribute("android:name"));
+                            }
+                            if (eElement.getAttribute("android:resource") != null
+                                    && (eElement.getAttribute("android:resource")).length() > 0) {
+                                metaData.setResource(eElement.getAttribute("android:resource"));
+                            }
+                            if (eElement.getAttribute("android:value") != null
+                                    && (eElement.getAttribute("android:value")).length() > 0) {
+                                metaData.setValue(eElement.getAttribute("android:value"));
+                            }
+                            receiver.getMetaDatas().add(metaData);
                         }
-                        if (eElement.getAttribute("android:resource") != null
-                                && (eElement.getAttribute("android:resource")).length() > 0) {
-                            metaData.setResource(eElement.getAttribute("android:resource"));
-                        }
-                        if (eElement.getAttribute("android:value") != null
-                                && (eElement.getAttribute("android:value")).length() > 0) {
-                            metaData.setValue(eElement.getAttribute("android:value"));
-                        }
-                        receiver.getMetaDatas().add(metaData);
                     }
                 }
-
                 manifest.getApplication().getApplicationComponents().add(receiver);
             }
         }
@@ -531,27 +529,26 @@ public class ManifestReader {
                                 intent.setLabel(eElement.getAttribute("android:label"));
                             }
                             service.getIntents().add(intent);
-                        }
-                    } else if (nNodeChild.getNodeName().trim().equalsIgnoreCase("meta-data")) {
-                        MetaData metaData = new MetaData();
-                        Element eElement = (Element) nNodeChild;
+                        } else if (nNodeChild.getNodeName().trim().equalsIgnoreCase("meta-data")) {
+                            MetaData metaData = new MetaData();
+                            Element eElement = (Element) nNodeChild;
 
-                        if (eElement.getAttribute("android:name") != null
-                                && (eElement.getAttribute("android:name")).length() > 0) {
-                            metaData.setName(eElement.getAttribute("android:name"));
+                            if (eElement.getAttribute("android:name") != null
+                                    && (eElement.getAttribute("android:name")).length() > 0) {
+                                metaData.setName(eElement.getAttribute("android:name"));
+                            }
+                            if (eElement.getAttribute("android:resource") != null
+                                    && (eElement.getAttribute("android:resource")).length() > 0) {
+                                metaData.setResource(eElement.getAttribute("android:resource"));
+                            }
+                            if (eElement.getAttribute("android:value") != null
+                                    && (eElement.getAttribute("android:value")).length() > 0) {
+                                metaData.setValue(eElement.getAttribute("android:value"));
+                            }
+                            service.getMetaDatas().add(metaData);
                         }
-                        if (eElement.getAttribute("android:resource") != null
-                                && (eElement.getAttribute("android:resource")).length() > 0) {
-                            metaData.setResource(eElement.getAttribute("android:resource"));
-                        }
-                        if (eElement.getAttribute("android:value") != null
-                                && (eElement.getAttribute("android:value")).length() > 0) {
-                            metaData.setValue(eElement.getAttribute("android:value"));
-                        }
-                        service.getMetaDatas().add(metaData);
                     }
                 }
-
                 manifest.getApplication().getApplicationComponents().add(service);
             }
         }
@@ -568,8 +565,7 @@ public class ManifestReader {
      * for (int temp = 0; temp < nList.getLength(); temp++) { Node nNode =
      * nList.item(temp); if (nNode.getNodeType() == Node.ELEMENT_NODE) {
      * manifest.getApplication().getApplicationComponents().add(processServiceAttributes((Element)
-     * nNode)); } }
-    }
+     * nNode)); } } }
      */
     private Service processServiceAttributes(Element eElement) {
         Service service = new Service();
@@ -902,27 +898,26 @@ public class ManifestReader {
                                 intent.setLabel(eElement.getAttribute("android:label"));
                             }
                             activityalias.getIntents().add(intent);
-                        }
-                    } else if (nNodeChild.getNodeName().trim().equalsIgnoreCase("meta-data")) {
-                        MetaData metaData = new MetaData();
-                        Element eElement = (Element) nNodeChild;
+                        } else if (nNodeChild.getNodeName().trim().equalsIgnoreCase("meta-data")) {
+                            MetaData metaData = new MetaData();
+                            Element eElement = (Element) nNodeChild;
 
-                        if (eElement.getAttribute("android:name") != null
-                                && (eElement.getAttribute("android:name")).length() > 0) {
-                            metaData.setName(eElement.getAttribute("android:name"));
+                            if (eElement.getAttribute("android:name") != null
+                                    && (eElement.getAttribute("android:name")).length() > 0) {
+                                metaData.setName(eElement.getAttribute("android:name"));
+                            }
+                            if (eElement.getAttribute("android:resource") != null
+                                    && (eElement.getAttribute("android:resource")).length() > 0) {
+                                metaData.setResource(eElement.getAttribute("android:resource"));
+                            }
+                            if (eElement.getAttribute("android:value") != null
+                                    && (eElement.getAttribute("android:value")).length() > 0) {
+                                metaData.setValue(eElement.getAttribute("android:value"));
+                            }
+                            activityalias.getMetaDatas().add(metaData);
                         }
-                        if (eElement.getAttribute("android:resource") != null
-                                && (eElement.getAttribute("android:resource")).length() > 0) {
-                            metaData.setResource(eElement.getAttribute("android:resource"));
-                        }
-                        if (eElement.getAttribute("android:value") != null
-                                && (eElement.getAttribute("android:value")).length() > 0) {
-                            metaData.setValue(eElement.getAttribute("android:value"));
-                        }
-                        activityalias.getMetaDatas().add(metaData);
                     }
                 }
-
                 manifest.getApplication().getApplicationComponents().add(activityalias);
             }
         }
@@ -939,8 +934,7 @@ public class ManifestReader {
      * for (int temp = 0; temp < nList.getLength(); temp++) { Node nNode =
      * nList.item(temp); if (nNode.getNodeType() == Node.ELEMENT_NODE) {
      * manifest.getApplication().getApplicationComponents().add(processActivityAliasAttributes((Element)
-     * nNode)); } }
-    }
+     * nNode)); } } }
      */
     private ActivityAlias processActivityAliasAttributes(Element eElement) {
         ActivityAlias activityAlias = new ActivityAlias();
@@ -1067,27 +1061,26 @@ public class ManifestReader {
                                 intent.setLabel(eElement.getAttribute("android:label"));
                             }
                             activity.getIntents().add(intent);
-                        }
-                    } else if (nNodeChild.getNodeName().trim().equalsIgnoreCase("meta-data")) {
-                        MetaData metaData = new MetaData();
-                        Element eElement = (Element) nNodeChild;
+                        } else if (nNodeChild.getNodeName().trim().equalsIgnoreCase("meta-data")) {
+                            MetaData metaData = new MetaData();
+                            Element eElement = (Element) nNodeChild;
 
-                        if (eElement.getAttribute("android:name") != null
-                                && (eElement.getAttribute("android:name")).length() > 0) {
-                            metaData.setName(eElement.getAttribute("android:name"));
+                            if (eElement.getAttribute("android:name") != null
+                                    && (eElement.getAttribute("android:name")).length() > 0) {
+                                metaData.setName(eElement.getAttribute("android:name"));
+                            }
+                            if (eElement.getAttribute("android:resource") != null
+                                    && (eElement.getAttribute("android:resource")).length() > 0) {
+                                metaData.setResource(eElement.getAttribute("android:resource"));
+                            }
+                            if (eElement.getAttribute("android:value") != null
+                                    && (eElement.getAttribute("android:value")).length() > 0) {
+                                metaData.setValue(eElement.getAttribute("android:value"));
+                            }
+                            activity.getMetaDatas().add(metaData);
                         }
-                        if (eElement.getAttribute("android:resource") != null
-                                && (eElement.getAttribute("android:resource")).length() > 0) {
-                            metaData.setResource(eElement.getAttribute("android:resource"));
-                        }
-                        if (eElement.getAttribute("android:value") != null
-                                && (eElement.getAttribute("android:value")).length() > 0) {
-                            metaData.setValue(eElement.getAttribute("android:value"));
-                        }
-                        activity.getMetaDatas().add(metaData);
                     }
                 }
-
                 manifest.getApplication().getApplicationComponents().add(activity);
             }
         }
@@ -1098,13 +1091,6 @@ public class ManifestReader {
      * @param doc
      * @return an arraylist of Activity Object read from the manifest file
      *
-     * private void readActivity(Document doc, Manifest manifest) { NodeList
-     * nList = doc.getElementsByTagName("activity");
-     *
-     * for (int temp = 0; temp < nList.getLength(); temp++) { Node nNode =
-     * nList.item(temp); if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-     * manifest.getApplication().getApplicationComponents().add(processActivityAttributes((Element)
-     * nNode)); } } }
      */
     private Activity processActivityAttributes(Element eElement) {
         Activity act = new Activity();

@@ -4,10 +4,6 @@
  */
 package manifest.application;
 
-/**
- *
- * @author ongzy-001PC
- */
 public class Library {
     private String name;
     private boolean required = false;

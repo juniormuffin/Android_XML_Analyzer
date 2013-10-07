@@ -27,6 +27,7 @@ import manifest.application.metaData.MetaData;
 import manifest.application.permission.GrantUriPermission;
 import manifest.application.permission.PathPermission;
 import permissions.Permissions;
+import andoridmanifest_analyzer.MainFrame;
 
 public class ManifestReader {
 
@@ -79,6 +80,7 @@ public class ManifestReader {
             readLibrary(doc, getManifest());
         } catch (Exception e) {
             e.printStackTrace();
+            MainFrame.txtLogs.setText("Malform XML... ");
         }
     }
     

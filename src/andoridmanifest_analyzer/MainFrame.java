@@ -4,6 +4,11 @@ import javax.swing.table.DefaultTableModel;
 import manifest.ManifestReader;
 import permissions.*;
 import de.javasoft.plaf.synthetica.SyntheticaBlackMoonLookAndFeel; 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.InputStream;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.ListSelectionModel;
@@ -13,6 +18,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import manifest.Feature;
 import manifest.Instrumentation;
 import manifest.application.Activity;
 import manifest.application.ActivityAlias;
@@ -48,19 +54,20 @@ public class MainFrame extends javax.swing.JFrame {
      * Creates new form MainFrame
      */
     public MainFrame() {
+        initComponents();
+        MainFrame.txtLogs.setText("Starting....\n");
         try {
             UIManager.setLookAndFeel(new SyntheticaBlackMoonLookAndFeel());
         } catch (Exception e) {
-            txtLogs.setText(e.toString());
+            MainFrame.txtLogs.setText(MainFrame.txtLogs.getText() + e.toString()+"\n");
             //e.printStackTrace();
         }
-        initComponents();
         this.setIconImage(new ImageIcon("./res/icon.png").getImage());
         try {
             pload.loadPermission("groupPermission.txt", 1);
             pload.loadPermission("permission.txt", 2);
         } catch (Exception ex) {
-            txtLogs.setText(ex.toString());
+            MainFrame.txtLogs.setText(MainFrame.txtLogs.getText() + ex.toString()+"\n");
             //ex.printStackTrace();
         }
         tblUsesPermissions.setModel(new CustomTableModel(null, columnNamesUsesPermissions));
@@ -366,13 +373,37 @@ public class MainFrame extends javax.swing.JFrame {
                     Object[][] dataPermissionGroup = null;
                     Object[][] dataPermissionTree = null;
                     try {
-                        loadOthers(reader);
-                        System.out.println(files[i].getCanonicalPath());
-                        txtLogs.setText(files[i].getCanonicalPath());
-                        reader.readManifest(files[i].getCanonicalPath());
+                        MainFrame.txtLogs.setText("File Dropped: "+ files[i].getCanonicalPath() +"\n");
+                       
+                        if (files[i].getCanonicalPath().endsWith("apk")) {
+                            ExtractAPK unZip = new ExtractAPK();
+                            unZip.unZipIt(MainFrame.txtLogs, files[i].getCanonicalPath(), ".\\" + files[i].getCanonicalPath().substring(files[i].getCanonicalPath().lastIndexOf("\\")));
+                            try {
+                                InputStream is = new FileInputStream(".\\" + files[i].getCanonicalPath().substring(files[i].getCanonicalPath().lastIndexOf("\\")) + "\\AndroidManifest.xml");
+                                byte[] xml = new byte[is.available()];
+                                int br = is.read(xml);
+                                //Tree tr = TrunkFactory.newTree();
+                                String xmlText = unZip.decompressXML(xml);
+                                File f = new File(".\\" + files[i].getCanonicalPath().substring(files[i].getCanonicalPath().lastIndexOf("\\")) + "\\AndroidManifest.xml");
+                                FileWriter fw = new FileWriter(f.getAbsoluteFile());
+                                BufferedWriter bw = new BufferedWriter(fw);
+                                bw.write(xmlText);
+                                bw.close();
+                                //prt("XML\n"+tr.list());
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+
+                            //System.out.println("Reading: .\\"+ files[i].getCanonicalPath().substring(files[i].getCanonicalPath().lastIndexOf("\\")) + "\\AndroidManifest.xml");
+                            reader.readManifest(".\\" + files[i].getCanonicalPath().substring(files[i].getCanonicalPath().lastIndexOf("\\")) + "\\AndroidManifest.xml");
+                            MainFrame.txtLogs.setText(MainFrame.txtLogs.getText() + "Reading: .\\"+ files[i].getCanonicalPath().substring(files[i].getCanonicalPath().lastIndexOf("\\")) + "\\AndroidManifest.xml"+"\n");
+                        } else {
+                            reader.readManifest(files[i].getCanonicalPath());
+                            MainFrame.txtLogs.setText(MainFrame.txtLogs.getText() + "Reading: .\\"+ files[i].getCanonicalPath()+"\n");
+                        }
                         reader.calculateScore(PermissionLoader.arrPermissions);
                         System.out.println("Score: " + reader.getManifest().getScore());
-                        txtLogs.setText("Score: " + reader.getManifest().getScore());
+                        MainFrame.txtLogs.setText(MainFrame.txtLogs.getText() + "Score: " + reader.getManifest().getScore()+"\n");
                         lblPackageName2.setText(reader.getManifest().getPackageName());
                         lblSDK2.setText("Min: "+reader.getManifest().getSdkMinVersion()
                                 + " Max: "+reader.getManifest().getSdkMaxVersion()
@@ -500,10 +531,12 @@ public class MainFrame extends javax.swing.JFrame {
                                dataApp[k][8] = ((Provider)appComp).getMetaDatas().size();//reader.getManifest().getActivities().get(k).getMetaData();
                             }
                         }
+                        
+                        loadOthers(reader);
                     } 
                     catch (java.io.IOException e) {
                         //e.printStackTrace();
-                        txtLogs.setText(e.toString());
+                        MainFrame.txtLogs.setText(MainFrame.txtLogs.getText() + e.toString()+"\n");
                     } finally {
                         tblUsesPermissions.setModel(new CustomTableModel(data, columnNamesUsesPermissions));
                         tblApps.setModel(new CustomTableModel(dataApp, columnNamesApplications));
@@ -520,9 +553,24 @@ public class MainFrame extends javax.swing.JFrame {
     
     private void loadOthers(ManifestReader reader)
     {
-        String text = "<b>Instrumentation</b>";
+        String text = "<b>Instrumentation</b><br><hr>";
         ArrayList<Instrumentation> instrumentations = reader.getManifest().getInstrumentation();
-        //for(int  i = 0; i < )
+        for(int  i = 0; i < instrumentations.size(); i++){
+            text += "<b>Name: </b>" + instrumentations.get(i).getName()+ "<br>";
+            text += "<b>Functional Test: </b>" + instrumentations.get(i).isFunctionalTest() + "<br>";
+            text += "<b>Handle Profiling: </b>" + instrumentations.get(i).isHandleProfiling()+ "<br>";
+            text += "<b>Icon: </b>" + instrumentations.get(i).getIcon()+ "<br>";
+            text += "<b>Label: </b>" + instrumentations.get(i).getLabel()+ "<br>";
+            text += "<b>Target Package: </b>" + instrumentations.get(i).getTargetPackage()+ "<br><hr>";
+        }
+        
+        text += "<b>Uses Features</b><br><hr>";
+        ArrayList<Feature> features = reader.getManifest().getFeature();
+        for(int  i = 0; i < features.size(); i++){
+            text += "<b>Name: </b>" + features.get(i).getName()+ "<br>";
+            text += "<b>Required: </b>" + features.get(i).isRequired()+ "<br>";
+            text += "<b>glEsVersion: </b>" + features.get(i).getGlEsVersion()+ "<br>";
+        }
         txtOthers.setText(text);
     }
     
@@ -639,13 +687,13 @@ public class MainFrame extends javax.swing.JFrame {
         pnlLibrary = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
         tblLibraries = new javax.swing.JTable();
+        pnlOthers = new javax.swing.JPanel();
+        jScrollPane9 = new javax.swing.JScrollPane();
+        txtOthers = new javax.swing.JTextPane();
         pnlError = new javax.swing.JPanel();
         jScrollPane5 = new javax.swing.JScrollPane();
         txtLogs = new javax.swing.JTextPane();
         btnClear = new javax.swing.JButton();
-        pnlOthers = new javax.swing.JPanel();
-        jScrollPane9 = new javax.swing.JScrollPane();
-        txtOthers = new javax.swing.JTextPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Andorid Manifest Analyzer");
@@ -772,7 +820,7 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(progressPermissionsScoreMatrix, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblScore))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 468, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 473, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -805,7 +853,7 @@ public class MainFrame extends javax.swing.JFrame {
             pnlPermissionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlPermissionLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 493, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -838,7 +886,7 @@ public class MainFrame extends javax.swing.JFrame {
             pnlPermissionTreeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlPermissionTreeLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
+                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 493, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -871,7 +919,7 @@ public class MainFrame extends javax.swing.JFrame {
             pnlPermissionGroupLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlPermissionGroupLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane8, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
+                .addComponent(jScrollPane8, javax.swing.GroupLayout.DEFAULT_SIZE, 493, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -938,7 +986,7 @@ public class MainFrame extends javax.swing.JFrame {
             pnlApplicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlApplicationsLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(split1, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
+                .addComponent(split1, javax.swing.GroupLayout.DEFAULT_SIZE, 493, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -970,11 +1018,34 @@ public class MainFrame extends javax.swing.JFrame {
             pnlLibraryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlLibraryLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 493, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         tabDetails.addTab("Libraries", pnlLibrary);
+
+        txtOthers.setEditable(false);
+        txtOthers.setContentType("text/html"); // NOI18N
+        jScrollPane9.setViewportView(txtOthers);
+
+        javax.swing.GroupLayout pnlOthersLayout = new javax.swing.GroupLayout(pnlOthers);
+        pnlOthers.setLayout(pnlOthersLayout);
+        pnlOthersLayout.setHorizontalGroup(
+            pnlOthersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlOthersLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane9, javax.swing.GroupLayout.DEFAULT_SIZE, 818, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        pnlOthersLayout.setVerticalGroup(
+            pnlOthersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlOthersLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane9, javax.swing.GroupLayout.DEFAULT_SIZE, 493, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        tabDetails.addTab("Others", pnlOthers);
 
         jScrollPane5.setViewportView(txtLogs);
 
@@ -1010,28 +1081,6 @@ public class MainFrame extends javax.swing.JFrame {
 
         tabDetails.addTab("Logs", pnlError);
 
-        txtOthers.setEditable(false);
-        jScrollPane9.setViewportView(txtOthers);
-
-        javax.swing.GroupLayout pnlOthersLayout = new javax.swing.GroupLayout(pnlOthers);
-        pnlOthers.setLayout(pnlOthersLayout);
-        pnlOthersLayout.setHorizontalGroup(
-            pnlOthersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnlOthersLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane9, javax.swing.GroupLayout.DEFAULT_SIZE, 818, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        pnlOthersLayout.setVerticalGroup(
-            pnlOthersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnlOthersLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane9, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-
-        tabDetails.addTab("Others", pnlOthers);
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -1059,7 +1108,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
         // TODO add your handling code here:
-        txtLogs.setText("");
+        MainFrame.txtLogs.setText("");
     }//GEN-LAST:event_btnClearActionPerformed
 
     /**
@@ -1125,7 +1174,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTable tblUsesPermissions;
     private javax.swing.JTree treeComponents;
     private javax.swing.JTextPane txtComponent;
-    private javax.swing.JTextPane txtLogs;
+    public static javax.swing.JTextPane txtLogs;
     private javax.swing.JTextPane txtOthers;
     // End of variables declaration//GEN-END:variables
 }

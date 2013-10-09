@@ -26,7 +26,7 @@ public class PermissionLoader {
             StringTokenizer st = new StringTokenizer(line, ":");
             String name = null, description = null, remarks = null;
             int score = -1;
-            System.out.println(line);
+            //System.out.println(line);
             if (st.hasMoreTokens()) {
                 name = st.nextToken();
             }

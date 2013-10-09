@@ -54,14 +54,14 @@ public class MainFrame extends javax.swing.JFrame {
      * Creates new form MainFrame
      */
     public MainFrame() {
-        initComponents();
-        MainFrame.txtLogs.setText("Starting....\n");
         try {
             UIManager.setLookAndFeel(new SyntheticaBlackMoonLookAndFeel());
         } catch (Exception e) {
+            e.printStackTrace();
             MainFrame.txtLogs.setText(MainFrame.txtLogs.getText() + e.toString()+"\n");
-            //e.printStackTrace();
         }
+        initComponents();
+        MainFrame.txtLogs.setText("Starting....\n");
         this.setIconImage(new ImageIcon("./res/icon.png").getImage());
         try {
             pload.loadPermission("groupPermission.txt", 1);

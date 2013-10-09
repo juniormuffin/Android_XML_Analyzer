@@ -360,7 +360,10 @@ public class Activity extends ApplicationComponent {
      * @param launchmode the launchmode to set
      */
     public void setLaunchmode(String launchmode) {
-        this.setLaunchmode(Launchmode.valueOf(launchmode));
+        if(launchmode.matches("\\d+")){
+            this.setLaunchmode(Launchmode.values()[3]);
+        }else
+            this.setLaunchmode(Launchmode.valueOf(launchmode));
     }
 
     /**

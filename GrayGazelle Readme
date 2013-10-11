@@ -1,1 +1,11 @@
 java -jar smali2pseudojava.jar <input file/directory>  
+
+Notes:
+- If input is a file, will process the file only
+- If input is a directory, will process all *.smali files in the immediate directory (No recursive directory)
+
+- Should support all smali opcodes documented here (http://www.netmite.com/android/mydroid/dalvik/docs/dalvik-bytecode.html)
+	- Except filled-new-array and filled-new-array/range opcodes
+	
+Do contact me if you see funny behaviors or errors when using this jar file.
+Thanks!

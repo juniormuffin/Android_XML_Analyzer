@@ -1,0 +1,1 @@
+java -jar smali2pseudojava.jar <input file/directory>  
